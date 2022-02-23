@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: ./api-server
+      target: dev
+    volumes:
+      - ./api-server:/src
+    command: npm run start:dev
+    ports:
+      - "5050:5050"
+    environment:
+      NODE_ENV: development
+      DEBUG: api-server:*
