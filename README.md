@@ -12,7 +12,7 @@ Easiest way to install Docker is to use Docker Desktop, which comes as an instal
 
 Dockerfile is a blueprint on which the Docker image is built. When the built image is running, it is called a container.
 
-Here is the Dockerfile for our api-server:
+Here is the `Dockerfile` for our api-server:
 
 ```Dockerfile
 # Using Docker Node Alpine LTS image (skinny version of node)
@@ -22,7 +22,7 @@ FROM node:14-alpine as base
 # Sets the context for subsequent RUN commands
 WORKDIR /src
 # Copy package.json and package-lock.json files 
-COPY package*.json /src
+COPY package*.json ./
 # Exposing the port on the container
 EXPOSE 5050
 
@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 # npm ci installs from package-lock.json for a deterministic build
 RUN npm ci
 # Copy app code to /src, our workdir
-COPY . /src
+COPY ./ ./
 # Run the server
 CMD ["node", "app"]
 
@@ -41,7 +41,7 @@ CMD ["node", "app"]
 FROM base as dev
 ENV NODE_ENV=development
 RUN npm install -g nodemon && npm install
-COPY . /src
+COPY ./ ./
 CMD ["nodemon", "app"]
 ```
 
@@ -64,11 +64,15 @@ First we need to build our image:
 docker build -t api-server .
 ```
 
+> `-t` flag: Name the container
+
 And then we can run it as a container:
 
 ```
 docker run --rm -p 5050:5050 --name blog-api api-server
 ```
+
+> `--rm` flag: Clean up the container after it exits
 
 At this point you should be able to see the server if you make a request to http://localhost:5050 as well as see the container running in Docker Desktop.
 
@@ -115,6 +119,38 @@ And then run our image:
 ```
 docker-compose up
 ```
+
+## Adding Client Application Container
+
+For our React client application, we'll do the same steps, add a `Dockerfile`:
+
+```Dockerfile
+FROM node:14-alpine
+
+WORKDIR /src
+COPY package*.json ./
+EXPOSE 3000
+
+COPY ./ ./
+RUN npm i
+CMD ["npm", "run", "start"]
+```
+
+And a `.dockerignore` file:
+
+```dockerignore
+.git
+node_modules
+```
+
+Quick test before we add it to `docker-compose` file:
+
+```
+docker build -t blog-ui .
+docker run -it --rm -p 3000:3000 --name blog-ui blog-ui
+```
+
+> `-it` flag: Run as interactive process, allocating a tty for container process
 
 ## Data Persistence
 
