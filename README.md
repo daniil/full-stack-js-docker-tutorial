@@ -70,7 +70,7 @@ First we need to build our image:
 docker build -t api-server .
 ```
 
-> `-t` flag: Name the container
+> `-t` flag: Name of the container
 
 And then we can run it as a container:
 
@@ -111,7 +111,6 @@ services:
     # Environment variables
     environment:
       NODE_ENV: development
-      DEBUG: api-server:*
 ```
 
 To build our image we run an optimized build using [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/):
@@ -222,10 +221,11 @@ With Express API, React and NGINX containers we can update `docker-compose.yml` 
 version: '3.8'
 
 # Common variables used for MySQL connection
+# Get the values from .env file, automatically loaded by Docker
 x-common-variables: &common-variables
-  MYSQL_DATABASE: blog
-  MYSQL_USER: MYSQL_USER
-  MYSQL_PASSWORD: MYSQL_PASSWORD
+  MYSQL_DATABASE: $MYSQL_DATABASE
+  MYSQL_USER: $MYSQL_USER
+  MYSQL_PASSWORD: $MYSQL_PASSWORD
 
 services:
   # MySQL Database Service
@@ -243,9 +243,10 @@ services:
       # Expose 3306 from container as 9906 externally
       - "9906:3306"
     environment:
+      # Include the common variables
       <<: *common-variables
-      MYSQL_ROOT_PASSWORD: MYSQL_ROOT_PASSWORD
-      MYSQL_HOST: localhost
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_HOST: $MYSQL_HOST
 
   nginx:
     # Starts services in dependency order
@@ -273,8 +274,8 @@ services:
       - "5050:5050"
     environment:
       <<: *common-variables
+      PORT: $API_PORT
       NODE_ENV: development
-      DEBUG: api-server:*
   
   ui:
     stdin_open: true
@@ -286,7 +287,7 @@ services:
     volumes:
       - ./blog-ui:/src
     ports:
-      - "3000:3000"
+      - $CLIENT_PORT:$CLIENT_PORT
   
   # An admin interface for MySQL DB
   adminer:

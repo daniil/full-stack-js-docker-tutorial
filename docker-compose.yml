@@ -1,9 +1,9 @@
 version: '3.8'
 
 x-common-variables: &common-variables
-  MYSQL_DATABASE: blog
-  MYSQL_USER: MYSQL_USER
-  MYSQL_PASSWORD: MYSQL_PASSWORD
+  MYSQL_DATABASE: $MYSQL_DATABASE
+  MYSQL_USER: $MYSQL_USER
+  MYSQL_PASSWORD: $MYSQL_PASSWORD
 
 services:
   db:
@@ -18,8 +18,8 @@ services:
       - "9906:3306"
     environment:
       <<: *common-variables
-      MYSQL_ROOT_PASSWORD: MYSQL_ROOT_PASSWORD
-      MYSQL_HOST: localhost
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_HOST: $MYSQL_HOST
 
   nginx:
     depends_on:
@@ -42,11 +42,11 @@ services:
       - ./api-server:/src
     command: npm run start:dev
     ports:
-      - "5050:5050"
+      - $API_PORT:$API_PORT
     environment:
       <<: *common-variables
+      PORT: $API_PORT
       NODE_ENV: development
-      DEBUG: api-server:*
   
   ui:
     stdin_open: true
@@ -57,7 +57,7 @@ services:
     volumes:
       - ./blog-ui:/src
     ports:
-      - "3000:3000"
+      - $CLIENT_PORT:$CLIENT_PORT
   
   adminer:
     image: adminer:latest

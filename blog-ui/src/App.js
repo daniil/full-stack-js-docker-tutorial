@@ -64,6 +64,7 @@ const App = () => {
       <p>We've been waiting for you!</p>
       <div className="post-container">
         <section className="posts">
+          {!posts.length && <p>No posts yet, why don't create new one!</p>}
           {posts.map(post => {
             return (
               <Post key={post.id} post={post}/>
