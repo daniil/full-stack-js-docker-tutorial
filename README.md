@@ -271,7 +271,7 @@ services:
       - ./api-server:/src
     command: npm run start:dev
     ports:
-      - "5050:5050"
+      - $API_PORT:$API_PORT
     environment:
       <<: *common-variables
       PORT: $API_PORT
@@ -303,6 +303,25 @@ services:
 # Data Persistence volumes
 volumes:
   mysql_data:
+```
+
+We should also update both `api-server` and `blog-ui` Dockerfiles to include environment variables.
+
+For `api-server`:
+
+```Dockerfile
+# Argument will be passed from docker-compose (or CLI command)
+ARG API_PORT
+ENV PORT=${API_PORT}
+EXPOSE ${API_PORT}
+```
+
+For `blog-ui`:
+
+```Dockerfile
+ARG CLIENT_PORT
+ENV PORT=${CLIENT_PORT}
+EXPOSE ${CLIENT_PORT}
 ```
 
 With these changes we can start the whole environment back by re-building and starting it:

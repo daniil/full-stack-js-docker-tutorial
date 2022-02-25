@@ -2,7 +2,9 @@ FROM node:14-alpine as base
 
 WORKDIR /src
 COPY package*.json ./
-EXPOSE 5050
+ARG API_PORT
+ENV PORT=${API_PORT}
+EXPOSE ${API_PORT}
 
 FROM base as production
 ENV NODE_ENV=production
