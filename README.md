@@ -4,6 +4,8 @@
 
 This tutorial will create a Docker Compose pipeline including React Front End, Express API Backend, NGINX Reverse Proxy Server for React and Express services, MySQL Database and admin interface for MySQL.
 
+This is going to be a development environment with hot-reload of React and Express servers, with potential to be expanded to a production environment.
+
 ## What is Docker?
 
 Docker is a great way to provide consistent development environments. It allows us to set up required services, app dependencies, and configuration by keeping all of our application setup information in code instead of relying on the know-how or potentially outdated documentation. It also allows us to set up things so that we can develop locally and start our dependencies with one Docker command.
@@ -17,6 +19,8 @@ Easiest way to install Docker is to use Docker Desktop, which comes as an instal
 ## Dockerfile
 
 Dockerfile is a blueprint on which the Docker image is built. When the built image is running, it is called a container.
+
+Dockerfile usually contains the environment setup for one or several apps, ie: server software, copying app files, installing dependencies, running the app.
 
 Here is the `Dockerfile` for our api-server:
 
@@ -79,6 +83,7 @@ docker run --rm -p 5050:5050 --name blog-api api-server
 ```
 
 > `--rm` flag: Clean up the container after it exits
+> `-p` flag: Expose host:container ports
 
 At this point you should be able to see the server if you make a request to http://localhost:5050 as well as see the container running in Docker Desktop.
 
@@ -86,7 +91,7 @@ At this point you should be able to see the server if you make a request to http
 
 By now we have most of the things we need to run our Express app with Docker. But even at this point the commands to run our application are getting long and hard to remember.
 
-Docker comes pre-installed with a tool called Docker Compose which allows us to run multiple containers much easier by using a couple of simple CLI commands and leaving the parameters configuration to code.
+Docker comes pre-installed with a tool called Docker Compose which allows us to run multiple containers with more ease by using a couple of simpler CLI commands and leaving the parameters configuration to code.
 
 We start by creating a `docker-compose.yml` file in the root folder with the following contents:
 
@@ -161,13 +166,15 @@ You should be able to see your client application running at `http://localhost:3
 
 ## Reverse Proxy Service Container
 
+We are now at the point where we can add React app to Docker Compose file as well and then start connecting to our Express server in React app. But with both React and Express apps being Docker containers, we'll need to do another step before we can make it happen.
+
 One thing important to remember about Docker containers is that they run in isolation, which is a good thing, but can be challenging if we need to connect to other services.
 
-So we can't simply make a request to our API at `http://localhost:5050` from our React container, because inside of that container `localhost` refers to the container itself. It's not an issue for something like DB as it will resolve the correct container API based on the container name, however, since React applications run in the browser, we won't be able to use API container name like: `http://api:5050` since there is no DNS resolver for that.
+So we can't simply make a request to our API at `http://localhost:5050` from our React container, because inside of that container `localhost` refers to the container itself. It's not an issue for something like DB as Docker will resolve the correct container IP based on the container name, however, since React applications run in the browser, we won't be able to use API container name like: `http://api:5050` since there is no DNS resolver for that.
 
 There are multiple ways to fix this, but one way of dealing with this is by creating an NGINX server container that would act as a reverse proxy server that will allow us to access both the ui and the api containers and create the necessary routing between the containers. It also makes front-end requests much cleaner as all we will have to write is `/api/...`. 
 
-Here is what a `default.conf` file inside of `nginx` folder:
+Here is what a `default.conf` file inside of `nginx` folder looks like:
 
 ```nginx
 # ui app upstream
@@ -215,7 +222,7 @@ COPY ./default.conf /etc/nginx/conf.d/default.conf
 
 ## Final Docker Compose Config
 
-With Express API, React and NGINX containers we can update `docker-compose.yml` to a final version that pulls everything together:
+With Express API, React and NGINX containers done, we can update `docker-compose.yml` to a final version that pulls everything together, and also adds a MySQL DB:
 
 ```yaml
 version: '3.8'
@@ -305,7 +312,7 @@ volumes:
   mysql_data:
 ```
 
-We should also update both `api-server` and `blog-ui` Dockerfiles to include environment variables.
+We should also update both `api-server` and `blog-ui` Dockerfiles to include environment variables (ensuring that they are provided via `.env` file or as parameters to `docker-compose`).
 
 For `api-server`:
 
