@@ -166,13 +166,13 @@ You should be able to see your client application running at `http://localhost:3
 
 ## Reverse Proxy Service Container
 
-We are now at the point where we can add React app to Docker Compose file as well and then start connecting to our Express server in React app. But with both React and Express apps being Docker containers, we'll need to do another step before we can make it happen.
+We are now at a point where we can add React app to Docker Compose file as well and then start connecting to our Express server in React app. With both React and Express apps being Docker containers on the same Docker network, we can technically make a request from React to Express via `http://localhost:5050` since it is going to be a browser request.
 
 One thing important to remember about Docker containers is that they run in isolation, which is a good thing, but can be challenging if we need to connect to other services.
 
-So we can't simply make a request to our API at `http://localhost:5050` from our React container, because inside of that container `localhost` refers to the container itself. It's not an issue for something like DB as Docker will resolve the correct container IP based on the container name, however, since React applications run in the browser, we won't be able to use API container name like: `http://api:5050` since there is no DNS resolver for that.
+For example we can make a request to our API at `http://localhost:5050` from our React container, because it's a browser request. However for something like DB we will need to use the Docker container name instead and in turn Docker will resolve the correct container IP based on the container name. On the other hand, since React applications run in the browser, we won't be able to use API container name like: `http://api:5050` as there is no DNS resolver for that URL. So it's just important to be aware of the context of how you are trying to connect between the containers.
 
-There are multiple ways to fix this, but one way of dealing with this is by creating an NGINX server container that would act as a reverse proxy server that will allow us to access both the ui and the api containers and create the necessary routing between the containers. It also makes front-end requests much cleaner as all we will have to write is `/api/...`. 
+Even though it can work as is, we will take it a step further by creating an NGINX server container that would act as a reverse proxy server and allow us to access both the ui and the api containers and create the necessary routing between the containers. It also makes front-end requests much cleaner as all we will have to write is `/api/...`. 
 
 Here is what a `default.conf` file inside of `nginx` folder looks like:
 
