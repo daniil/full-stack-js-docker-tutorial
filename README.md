@@ -105,9 +105,10 @@ services:
     build:
       context: ./api-server
       target: dev
-    # Copy and sync changes from the api-server directory with src on the Docker container, ie: hot reload 
+    # Copy and sync changes from the api-server directory with src on the Docker container, ie: hot reload. Also copy the node_modules to container.
     volumes:
       - ./api-server:/src
+      - /src/node_modules
     # Starting the service
     command: npm run start:dev
     # Exposing ports
@@ -276,6 +277,7 @@ services:
       - db
     volumes:
       - ./api-server:/src
+      - /src/node_modules
     command: npm run start:dev
     ports:
       - $API_PORT:$API_PORT
@@ -293,6 +295,7 @@ services:
       context: ./blog-ui
     volumes:
       - ./blog-ui:/src
+      - /src/node_modules
     ports:
       - $CLIENT_PORT:$CLIENT_PORT
   
