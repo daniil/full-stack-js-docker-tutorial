@@ -6,6 +6,8 @@ This tutorial will create a Docker Compose pipeline including React Front End, E
 
 This is going to be a development environment with hot-reload of React and Express servers, with potential to be expanded to a production environment.
 
+The repository contains the finished version of the tutorial as well as starter code if you want to follow it step-by-step yourself.
+
 ## What is Docker?
 
 Docker is a great way to provide consistent development environments. It allows us to set up required services, app dependencies, and configuration by keeping all of our application setup information in code instead of relying on the know-how or potentially outdated documentation. It also allows us to set up things so that we can develop locally and start our dependencies with one Docker command.
@@ -14,7 +16,7 @@ Essentially, using Docker we can "containerize" our applications which will make
 
 ## Docker Installation
 
-Easiest way to install Docker is to use Docker Desktop, which comes as an installer for [Mac](https://download.docker.com/mac/stable/Docker.dmg) or [Windows](https://download.docker.com/win/stable/Docker%20Desktop%20Installer.exe).
+Easiest way to install Docker is to use Docker Desktop, which comes as an installer for [Mac](https://docs.docker.com/desktop/install/mac-install/) or [Windows](https://docs.docker.com/desktop/install/windows-install/).
 
 ## Dockerfile
 
@@ -27,7 +29,7 @@ Here is the `Dockerfile` for our api-server:
 ```Dockerfile
 # Using Docker Node Alpine LTS image (skinny version of node)
 # Also specifying a base stage for multi-stage build
-FROM node:14-alpine as base
+FROM node:16-alpine as base
 
 # Sets the context for subsequent RUN commands
 WORKDIR /src
@@ -87,6 +89,8 @@ docker run --rm -p 5050:5050 --name blog-api api-server
 
 At this point you should be able to see the server if you make a request to http://localhost:5050 as well as see the container running in Docker Desktop.
 
+You will also notice that currently the hot-reload of the server doesn't actually work, and any changes you make would require a re-build and re-run of the container. Next steps will fix that and make things more manageable.
+
 ## Docker Compose
 
 By now we have most of the things we need to run our Express app with Docker. But even at this point the commands to run our application are getting long and hard to remember.
@@ -119,7 +123,7 @@ services:
       NODE_ENV: development
 ```
 
-To build our image we run an optimized build using [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/):
+To build our image we run an optimized build using [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/). Run this command in the root folder of the project:
 
 ```
 COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build
@@ -131,12 +135,14 @@ And then run our image:
 docker-compose up
 ```
 
+> If you get `EPERM: operation not permitted, open '/src/package.json'` error on macOS, make sure to go to *Security & Privacy* settings and under *Files and Folders* allow Docker access to a folder your application is in.
+
 ## Adding Client Application Container
 
 For our React client application, we'll do the same steps, add a `Dockerfile` in the `blog-ui` folder:
 
 ```Dockerfile
-FROM node:14-alpine
+FROM node:16-alpine
 
 WORKDIR /src
 COPY package*.json ./
@@ -154,7 +160,7 @@ And a `.dockerignore` file:
 node_modules
 ```
 
-Quick test before we connect it with our other services:
+Quick test before we connect it with our other services (make sure to run this inside of `/blog-ui` folder):
 
 ```
 docker build -t blog-ui .
@@ -317,7 +323,7 @@ volumes:
 
 We should also update both `api-server` and `blog-ui` Dockerfiles to include environment variables (ensuring that they are provided via `.env` file or as parameters to `docker-compose`).
 
-For `api-server`:
+For `api-server`, instead of `EXPOSE 5050` we can provide:
 
 ```Dockerfile
 # Argument will be passed from docker-compose (or CLI command)
@@ -326,13 +332,15 @@ ENV PORT=${API_PORT}
 EXPOSE ${API_PORT}
 ```
 
-For `blog-ui`:
+For `blog-ui`, instead of `EXPOSE 3000` we can provide:
 
 ```Dockerfile
 ARG CLIENT_PORT
 ENV PORT=${CLIENT_PORT}
 EXPOSE ${CLIENT_PORT}
 ```
+
+Make sure that you create an `.env` file with the values from `.env.example` file.
 
 With these changes we can start the whole environment back by re-building and starting it:
 
@@ -377,7 +385,6 @@ docker compose down
 
 ## Next Steps
 
-- Creating an `.env` file for sensitive and dynamic data instead of hardcoding it
 - Creating a production version of containers for all services
 
 ## Additional Resources

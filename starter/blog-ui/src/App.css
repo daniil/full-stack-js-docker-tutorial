@@ -1,0 +1,26 @@
+.app {
+  max-width: 75rem;
+  margin: 0 auto;
+}
+h1 {
+  color: #426A5A;
+}
+.post-container {
+  display: flex;
+  justify-content: space-between;
+}
+.posts {
+  flex-grow: 1;
+  margin-right: 3rem;
+}
+.post {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #F2C57C;
+}
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.form-input {
+  margin-bottom: 1rem;
+}
